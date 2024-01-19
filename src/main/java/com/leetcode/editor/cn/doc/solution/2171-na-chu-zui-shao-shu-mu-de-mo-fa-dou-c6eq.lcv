@@ -1,0 +1,76 @@
+# 解法
+
+## 思路和算法
+
+根据题目要求，需要从袋子中拿出最少的魔法豆，使得每个非空袋子中的魔法豆的数目相等。如果每个非空袋子中有 $x$ 个魔法豆，则当拿出的魔法豆数目最少时，应满足如下条件。
+
+- 魔法豆的数目小于 $x$ 的袋子中的魔法豆全部拿出。
+
+- 魔法豆的数目大于等于 $x$ 的袋子中，每个袋子保留 $x$ 个魔法豆，其余的魔法豆全部拿出。
+
+根据贪心策略，为了使拿出的魔法豆数目最少，每个非空袋子中保留的魔法豆数目 $x$ 应等于数组 $\textit{beans}$ 中的一个元素。理由如下。
+
+记 $x$ 为数组 $\textit{beans}$ 中的一个元素，考虑每个非空袋子中保留的魔法豆数目是 $y$，满足 $y < x$ 且范围 $[y, x - 1]$ 中的整数都不是数组 $\textit{beans}$ 中的元素。如果一个袋子中的魔法豆的数目小于 $y$，则该袋子中的魔法豆的数目一定小于 $x$，当每个非空袋子中有 $y$ 个魔法豆时，应满足如下条件。
+
+- 魔法豆的数目小于 $x$ 的袋子中的魔法豆全部拿出。
+
+- 魔法豆的数目大于等于 $x$ 的袋子中，每个袋子保留 $y$ 个魔法豆，其余的魔法豆全部拿出。
+
+由于 $y < x$，因此每个袋子保留 $y$ 个魔法豆时需要拿出的魔法豆数目一定大于每个袋子保留 $y$ 个魔法豆时需要拿出的魔法豆数目，即每个袋子保留 $y$ 个魔法豆时从袋子中拿出的魔法豆数目不可能最少。
+
+根据上述分析，可以枚举数组 $\textit{beans}$ 中的每个元素 $\textit{bean}$，计算每个非空袋子中有 $\textit{bean}$ 个魔法豆时从袋子中拿出的魔法豆数目的最小值。由于计算时对于数组 $\textit{beans}$ 中的小于 $\textit{bean}$ 的元素与大于等于 $\textit{bean}$ 的元素的处理方式不同，为了方便处理，首先将数组 $\textit{beans}$ 按升序排序，然后遍历数组并枚举每个元素，计算从袋子中拿出的魔法豆数目的最小值。
+
+用 $n$ 表示数组 $\textit{beans}$ 的长度。将数组 $\textit{beans}$ 按升序排序之后，计算数组 $\textit{beans}$ 的元素和 $\textit{total}$，然后从左到右遍历数组 $\textit{beans}$，当遍历到下标 $i$ 时，执行如下操作：当前每个非空袋子中保留 $\textit{beans}[i]$ 个魔法豆，由于数组 $\textit{beans}$ 的下标范围 $[i, n - 1]$ 中的元素值都大于等于 $\textit{beans}[i]$，该下标范围的元素个数是 $n - i$，因此保留的魔法豆总数是 $\textit{remain} = \textit{beans}[i] \times (n - i)$，从袋子中拿出的魔法豆数目是 $\textit{total} - \textit{remain}$，使用当前数目更新从袋子中拿出的魔法豆的最少数目。遍历结束之后即可得到答案。
+
+特别地，当数组 $\textit{beans}$ 中有重复元素时，对于每个元素都会计算从袋子中拿出的魔法豆数目，因此可以确保得到正确答案。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public long minimumRemoval(int[] beans) {
+        Arrays.sort(beans);
+        long total = 0;
+        for (int bean : beans) {
+            total += bean;
+        }
+        long minRemoval = total;
+        int n = beans.length;
+        for (int i = 0; i < n; i++) {
+            long remain = (long) beans[i] * (n - i);
+            minRemoval = Math.min(minRemoval, total - remain);
+        }
+        return minRemoval;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public long MinimumRemoval(int[] beans) {
+        Array.Sort(beans);
+        long total = 0;
+        foreach (int bean in beans) {
+            total += bean;
+        }
+        long minRemoval = total;
+        int n = beans.Length;
+        for (int i = 0; i < n; i++) {
+            long remain = (long) beans[i] * (n - i);
+            minRemoval = Math.Min(minRemoval, total - remain);
+        }
+        return minRemoval;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n \log n)$，其中 $n$ 是数组 $\textit{beans}$ 的长度。将数组 $\textit{beans}$ 排序的时间是 $O(n \log n)$，计算数组 $\textit{beans}$ 的元素和与遍历数组计算从袋子中拿出的魔法豆数目的时间是 $O(n)$，因此时间复杂度是 $O(n \log n)$。
+
+- 空间复杂度：$O(\log n)$，其中 $n$ 是数组 $\textit{beans}$ 的长度。排序的递归调用栈空间是 $O(\log n)$。
+

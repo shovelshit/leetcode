@@ -1,0 +1,50 @@
+> Problem: [2171. 拿出最少数目的魔法豆](https://leetcode.cn/problems/removing-minimum-number-of-magic-beans/description/)
+
+[TOC]
+
+# 思路
+
+> 我们可以发现，题目的意思就是要求拿走某些袋子的豆子使得拿走豆子数量最少时，如果存在袋子有豆子，那么数量就一定相等，由此，我们可以得出，如果袋子中的豆子都被丢弃，那么是所有豆子都被丢掉了，然后其他袋子中丢掉多余的豆子保证豆子数量一致。
+
+# 解题方法
+
+> 我们需要先对豆子数量进行排序，时间复杂度为$O(nlgn)$，然后判断哪些该全部丢掉，哪些该保留，取某一个袋子为基准，低于此数量的袋子中所有豆子都被丢弃，高于此数量的豆子丢弃一些数量的豆子保证豆子数量和该袋子一致，即可得到一个动态规划方程，即为sum=sum(num{1,2,3,...})+sum(num{rest})-count{rest}*base，然后从中判断取得最小值，经过分析可以得知时间复杂度为$O(n)$，空间复杂度为$O(1)$，总体时间复杂度为$O(nlgn)$
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C++
+class Solution
+{
+  public:
+    long long minimumRemoval(vector<int> &beans)
+    {
+        sort(beans.begin(), beans.end());
+        long long sum{0}, ignore{0}, cost{numeric_limits<long long>::max()};
+        auto count{beans.size()};
+        for (auto &i : beans)
+            sum += i;
+        for (auto &i : beans)
+        {
+            long long val = sum - i * count + ignore;
+            cost = cost < val ? cost : val;
+            sum -= i;
+            ignore += i;
+            --count;
+        }
+        return cost;
+    }
+};
+```
+

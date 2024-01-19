@@ -1,0 +1,181 @@
+> [2171. 拿出最少数目的魔法豆](https://leetcode.cn/problems/removing-minimum-number-of-magic-beans/)
+
+[TOC]
+
+# 题目
+
+给定一个 **正整数** 数组 `beans` ，其中每个整数表示一个袋子里装的魔法豆的数目。
+
+请你从每个袋子中 **拿出** 一些豆子（也可以 **不拿出**），使得剩下的 **非空** 袋子中（即 **至少还有一颗** 魔法豆的袋子）魔法豆的数目 **相等**。一旦把魔法豆从袋子中取出，你不能再将它放到任何袋子中。
+
+请返回你需要拿出魔法豆的 **最少数目**。
+
+# 题目分析
+
+## 思路分析
+
+这道题要求的是，我们使数组的每一位非0数都相同，至少要拿出多少魔法豆。
+也就是说，假设我们最终的那个非 `0` 数为 `num`。那么**比 `num` 小的元素不能增加，只能变成 `0`；而比 `num` 大元素则都变成 `num`**。
+
+既然要知道大小关系，我们就可以想到通过**排序**来是元素有序。那么如果我们最终的目标值是 `bean[i]`，那么：
+
+- `[0, i)` 的所有元素都变为 `0`，拿出的魔法豆数就为这部分的元素和，即为前缀和 `preSum[i]`;
+- `[i + 1, n)` 的所有元素都变成 `beans[i]`，拿出的魔法豆数就为 `(beans[i + 1] - bean[i]) +...+ (beans[n - 1] - beanss[i]) = (beans[i+1] + ... + beans[n-1]) - (bean[i]) * (n - (i + 1))`。【`[i+1, n)` 共有 `n - (i + 1)` 个数，因此减了 `n - (i + 1)` 次 `beans[i]`。】，则 `beans[i+1] + ... + beans[n-1]` 为后缀和 `sufSum[i + 1]`。
+
+![image-20240118011009526.png](https://pic.leetcode.cn/1705511728-EnEzPj-image-20240118011009526.png)
+
+那么最终魔法豆数目为 `beans[i]` 拿出的魔法豆数为：`preSum[i] + sufSum[i + 1] - (bean[i]) * (n - (i + 1))`。
+
+我们可以通过枚举每一个 `beans[i]` 作为最终的魔法豆数目，计算所要拿出的魔法豆数，取所有的最小值即可。
+
+------
+
+## 数学优化
+
+> 参考 官方题解《[拿出最少数目的魔法豆](https://leetcode.cn/problems/removing-minimum-number-of-magic-beans/solutions/1270306/na-chu-zui-shao-shu-mu-de-mo-fa-dou-by-l-dhsl/?envType=daily-question&envId=2024-01-18)》
+
+我们进一步观察公式：
+
+![image-20240118011428220.png](https://pic.leetcode.cn/1705511728-lDRJiz-image-20240118011428220.png)
+最终魔法豆数目为 `beans[i]` 拿出的魔法豆数为：`totalSum - (bean[i]) * (n - i)`。
+
+因此，我们不需要记录前后缀和，只需要先计算一遍数组所有元素和即可。
+
+# 代码
+
+> 前后缀和
+
+* []
+
+```Java
+class Solution {
+    public long minimumRemoval(int[] beans) {
+        int n = beans.length;                   // 元素个数
+        Arrays.sort(beans);                     // 对种子进行排序
+        long[] suffixSums = new long[n + 1];    // 后缀和数组，suffixSums[i]表示[i, n)的元素和，suffixSums[n] = 0表示[n, n)的元素和不存在
+        long sufSum = 0;    // 后缀和
+        for(int i = n - 1; i >= 0; i--){
+            sufSum += beans[i];         // 先累加当前位置元素
+            suffixSums[i] = sufSum;     // 再更新后缀和
+        }   
+        long ans = suffixSums[0];       // 最少数目，初始为极大值——所有元素和，表示拿走所有魔法豆
+        long preSum = 0;                // 前缀和，表示[0,i)的元素和
+        for(int i = 0; i < n; i++){
+            // 每次要将数组中的元素都变成beans[i]，比beans[i]小的魔法豆全都拿走，即为前缀和；
+            // 比beans[i]大的魔法豆要变成beans，即为后缀和 - beans[i] * (n - i - 1)
+            ans = Math.min(ans, preSum + suffixSums[i + 1] - (long)beans[i] * (n - i - 1));
+            preSum += beans[i];
+        }
+        return ans;
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def minimumRemoval(self, beans: List[int]) -> int:
+        n = len(beans)     # 元素个数
+        beans.sort()       # 对种子进行排序
+        suffix_sums = [0] * (n + 1)    # 后缀和数组，suffix_sums[i]表示[i, n)的元素和，suffix_sums[n] = 0表示[n, n)的元素和不存在
+        suf_sum = 0                   # 后缀和
+        for i in range(n - 1, -1, -1):
+            suf_sum += beans[i]                 # 先累加当前位置元素
+            suffix_sums[i] = suf_sum             # 再更新后缀和   
+        ans = suffix_sums[0]          # 最少数目，初始为极大值——所有元素和，表示拿走所有魔法豆
+        pre_sum = 0                   # 前缀和，表示[0,i)的元素和
+        for i in range(n):
+            # 每次要将数组中的元素都变成beans[i]，比beans[i]小的魔法豆全都拿走，即为前缀和；
+            # 比beans[i]大的魔法豆要变成beans，即为后缀和 - beans[i] * (n - i - 1)
+            ans = min(ans, pre_sum + suffix_sums[i + 1] - beans[i] * (n - i - 1))
+            pre_sum += beans[i]
+        return ans
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    long long minimumRemoval(vector<int>& beans) {
+        int n = beans.size();                   // 元素个数
+        sort(beans.begin(), beans.end());       // 对种子进行排序
+        vector<long long> suffixSums(n + 1);    // 后缀和数组，suffixSums[i]表示[i, n)的元素和，suffixSums[n] = 0表示[n, n)的元素和不存在
+        long long sufSum = 0;                   // 后缀和
+        for(int i = n - 1; i >= 0; i--){
+            sufSum += beans[i];                 // 先累加当前位置元素
+            suffixSums[i] = sufSum;             // 再更新后缀和
+        }   
+        long long ans = suffixSums[0];          // 最少数目，初始为极大值——所有元素和，表示拿走所有魔法豆
+        long long preSum = 0;                   // 前缀和，表示[0,i)的元素和
+        for(int i = 0; i < n; i++){
+            // 每次要将数组中的元素都变成beans[i]，比beans[i]小的魔法豆全都拿走，即为前缀和；
+            // 比beans[i]大的魔法豆要变成beans，即为后缀和 - beans[i] * (n - i - 1)
+            ans = min(ans, preSum + suffixSums[i + 1] - (long long)beans[i] * (n - i - 1));
+            preSum += beans[i];
+        }
+        return ans;
+    }
+};
+```
+
+> 数学优化
+
+* []
+
+```Java
+class Solution {
+    public long minimumRemoval(int[] beans) {
+        int n = beans.length;       // 元素个数
+        Arrays.sort(beans);         // 对种子进行排序
+        long totalSum = 0;          // 后缀和
+        for(int b: beans){
+            totalSum += b;
+        } 
+        long ans = totalSum;       // 最少数目，初始为极大值——所有元素和，表示拿走所有魔法豆
+        for(int i = 0; i < n; i++){
+            // 每次要将数组中的元素都变成beans[i]，比beans[i]小的魔法豆全都拿走，即为前缀和；
+            // 比beans[i]大的魔法豆要变成beans，即为后缀和 - beans[i] * (n - i - 1)
+            ans = Math.min(ans, totalSum - (long)beans[i] * (n - i));
+        }
+        return ans;
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def minimumRemoval(self, beans: List[int]) -> int:
+        n = len(beans)          # 元素个数
+        beans.sort()            # 对种子进行排序
+        ans = total_sum = sum(beans)  # 总元素和；最少数目ans初始为极大值——所有元素和，表示拿走所有魔法豆
+        for i, b in enumerate(beans):
+            # 每次要将数组中的元素都变成beans[i]，比beans[i]小的魔法豆全都拿走，即为前缀和；
+            # 比beans[i]大的魔法豆要变成beans，即为后缀和 - beans[i] * (n - i - 1)
+            ans = min(ans, total_sum - b * (n - i))
+        return ans
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    long long minimumRemoval(vector<int>& beans) {
+        int n = beans.size();                   // 元素个数
+        sort(beans.begin(), beans.end());       // 对种子进行排序
+        long long totalSum = accumulate(beans.begin(), beans.end(), 0LL);    // 总元素和
+        long long ans = totalSum;          // 最少数目，初始为极大值——所有元素和，表示拿走所有魔法豆
+        for(int i = 0; i < n; i++){
+            // 每次要将数组中的元素都变成beans[i]，比beans[i]小的魔法豆全都拿走，即为前缀和；
+            // 比beans[i]大的魔法豆要变成beans，即为totalSum - beans[i] * (n - i)
+            ans = min(ans, totalSum - (long long)beans[i] * (n - i));
+        }
+        return ans;
+    }
+};
+```
+

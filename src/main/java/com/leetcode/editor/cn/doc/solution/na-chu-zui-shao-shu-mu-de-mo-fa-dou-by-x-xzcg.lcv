@@ -1,0 +1,51 @@
+> Problem: [2171. 拿出最少数目的魔法豆](https://leetcode.cn/problems/removing-minimum-number-of-magic-beans/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:$O(n)$
+
+空间复杂度:$O(n)$
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    long long minimumRemoval(vector<int>& beans) {
+        int n=beans.size();
+        vector<long long>fsum(n),rsum(n);
+        sort(beans.begin(),beans.end());
+        long long sum=beans[0];
+        for(int i=1;i<n;i++){
+            if(beans[i]==beans[i-1])
+                fsum[i]=fsum[i-1];
+            else fsum[i]=sum;
+            sum+=beans[i];
+        }
+    sum=beans[n-1];
+    for(int i=n-2;i>=0;i--){
+        if(beans[i]==beans[i+1])
+            rsum[i]=rsum[i+1];
+        else rsum[i]=sum-1LL*(n-1-i)*beans[i];
+        sum+=beans[i];
+    }
+    long long ret=LLONG_MAX;
+    for(int i=0;i<n;i++)
+        ret=min(ret,fsum[i]+rsum[i]);
+    return ret;
+    }
+};
+```
+
